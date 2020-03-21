@@ -1,26 +1,6 @@
-import os
-import uuid
 from flask import Flask, request
 from flask_restful import Resource, Api, abort
-from postgre_backend import DatabaseConnector as dbc
-
-
-def create_database_connection():
-    # with open("secrets.txt", 'r') as infile:
-    #     data = infile.read()
-    # credentials = json.loads(data)
-    # connector = dbc(user=credentials["user"],
-    #                 password=credentials["password"],
-    #                 host=credentials["host"],
-    #                 port=credentials["port"],
-    #                 database=credentials["database"])
-    connector = dbc(user=os.environ["USER"],
-                    password=os.environ["PASSWORD"],
-                    host=os.environ["HOST"],
-                    port=os.environ["PORT"],
-                    database=os.environ["DATABASE"])
-    return connector
-
+from learnsupport_service import LearnSupportService
 
 app = Flask(__name__)
 api = Api(app)
@@ -31,50 +11,56 @@ class Student(Resource):
         if not student_uid:
             abort(400, message="Parameter student_uid is empty.")
         else:
-            query = f"SELECT student_uid, name, class FROM student WHERE student_uid = '{student_uid}';"
-        results = connector.receive_from_database(query)
-        if not results:
-            abort(404, message="Parameter student_uid does not exist.")
-        return results
+            try:
+                results = service.get_student(student_uid)
+                if not results:
+                    abort(404, message="Parameter student_uid does not exist.")
+                return results
+            except Exception as e:
+                abort(500, message=e)
 
     def delete(self, student_uid):
         if not student_uid:
             abort(400, message="Parameter student_uid is empty.")
         else:
-            query = f"DELETE FROM student WHERE student_uid = '{student_uid}';"
-        connector.write_to_database(query)
-        # TODO: add better exception handling if userid does not exist in database
+            try:
+                service.delete_student(student_uid)
+            except Exception as e:
+                abort(500, message=e)
 
 
 class Students(Resource):
     def get(self):
-        query = "SELECT student_uid, name, class FROM student;"
-        results = connector.receive_from_database(query)
-        if not results:
-            abort(404, message="No student exists.")
-        return results
+        try:
+            results = service.get_students()
+            if not results:
+                abort(404, message="No student exists.")
+            return results
+        except Exception as e:
+            abort(500, message=e)
 
     def post(self):
         new_user = request.get_json()
         if not new_user:
             abort(400, message="Student is not valid.")
-        student_uid = uuid.uuid4()
-        query = f"INSERT INTO student (student_uid, name, class) VALUES ('{student_uid}', '{new_user['name']}', '{new_user['class']}')"
-        connector.write_to_database(query)
-        return {"student_uid": str(student_uid)}
+        try:
+            student_uid = service.post_students(new_user['name'], new_user['class'])
+            return {"student_uid": str(student_uid)}
+        except Exception as e:
+            abort(500, message=e)
 
 
 # add URLs
-api.add_resource(Student, '/student/<student_uid>')
-api.add_resource(Students, '/student')
+version = "v1"
+api.add_resource(Student, f'/{version}/student/<student_uid>')
+api.add_resource(Students, f'/{version}/student')
 
 
-# TODO: make a redirect instead
 @app.route('/')
-def hello_world():
-    return "Hello World"
+def get_version():
+    return f"LernserviceSupport: {version}"
 
 
 if __name__ == '__main__':
-    connector = create_database_connection()
-    app.run(debug=False, host='0.0.0.0')
+    service = LearnSupportService()
+    app.run(debug=True, host='0.0.0.0')
