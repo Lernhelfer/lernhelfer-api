@@ -1,24 +1,36 @@
+import os
 import json
 import uuid
 from postgre_backend import DatabaseConnector as dbc
 
 def create_database_connection():
-    with open("secrets.txt", 'r') as infile:
-        data = infile.read()
-    credentials = json.loads(data)
-    connector = dbc(user=credentials["user"],
-                    password=credentials["password"],
-                    host=credentials["host"],
-                    port=credentials["port"],
-                    database=credentials["database"])
-    # connector = dbc(user=os.environ["USER"],
-    #                 password=os.environ["PASSWORD"],
-    #                 host=os.environ["HOST"],
-    #                 port=os.environ["PORT"],
-    #                 database=os.environ["DATABASE"])
+    if "DEBUG_LOCAL" in os.environ.keys():
+        with open("secrets.txt", 'r') as infile:
+            data = infile.read()
+        credentials = json.loads(data)
+        user = credentials["user"]
+        password = credentials["password"]
+        host = credentials["host"]
+        port = credentials["port"]
+        database=credentials["database"]
+    else:
+        user=os.environ["USER"]
+        password=os.environ["PASSWORD"]
+        host=os.environ["HOST"]
+        port=os.environ["PORT"]
+        database=os.environ["DATABASE"]
+
+    connector = dbc(user=user,
+                    password=password,
+                    host=host,
+                    port=port,
+                    database=database)
+
     return connector
 
+
 class LearnSupportService:
+
     def __init__(self):
         self.connector = create_database_connection()
 

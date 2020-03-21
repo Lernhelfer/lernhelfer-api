@@ -18,5 +18,6 @@ ENV DATABASE "xxx"
 
 COPY flask_service.py .
 COPY postgre_backend.py .
+COPY learnsupport_service.py .
 
 CMD ["python3", "flask_service.py"]

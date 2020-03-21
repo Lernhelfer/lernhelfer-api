@@ -1,3 +1,4 @@
+import os
 from flask import Flask, request
 from flask_restful import Resource, Api, abort
 from learnsupport_service import LearnSupportService
@@ -63,4 +64,7 @@ def get_version():
 
 if __name__ == '__main__':
     service = LearnSupportService()
-    app.run(debug=True, host='0.0.0.0')
+    debug = False
+    if "DEBUG_LOCAL" in os.environ.keys():
+        debug = True
+    app.run(debug=debug, host='0.0.0.0')
