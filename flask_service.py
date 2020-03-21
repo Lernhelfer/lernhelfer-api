@@ -1,19 +1,26 @@
-import json
+import os
+import uuid
 from flask import Flask, request
 from flask_restful import Resource, Api, abort
 from postgre_backend import DatabaseConnector as dbc
-import uuid
+
 
 def create_database_connection():
-    with open("secrets.txt", 'r') as infile:
-        data = infile.read()
-    credentials = json.loads(data)
-    connector = dbc(user=credentials["user"],
-                    password=credentials["password"],
-                    host=credentials["host"],
-                    port=credentials["port"],
-                    database=credentials["database"])
+    # with open("secrets.txt", 'r') as infile:
+    #     data = infile.read()
+    # credentials = json.loads(data)
+    # connector = dbc(user=credentials["user"],
+    #                 password=credentials["password"],
+    #                 host=credentials["host"],
+    #                 port=credentials["port"],
+    #                 database=credentials["database"])
+    connector = dbc(user=os.environ["USER"],
+                    password=os.environ["PASSWORD"],
+                    host=os.environ["HOST"],
+                    port=os.environ["PORT"],
+                    database=os.environ["DATABASE"])
     return connector
+
 
 app = Flask(__name__)
 api = Api(app)
@@ -56,9 +63,11 @@ class Students(Resource):
         connector.write_to_database(query)
         return {"student_uid": str(student_uid)}
 
+
 # add URLs
 api.add_resource(Student, '/student/<student_uid>')
 api.add_resource(Students, '/student')
+
 
 # TODO: make a redirect instead
 @app.route('/')
@@ -68,4 +77,4 @@ def hello_world():
 
 if __name__ == '__main__':
     connector = create_database_connection()
-    app.run(debug=True)
+    app.run(debug=False, host='0.0.0.0')

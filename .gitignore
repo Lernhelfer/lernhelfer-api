@@ -4,6 +4,7 @@
 
 ### credentials
 secrets.txt
+credentials.env
 
 ### Flask ###
 instance/*
