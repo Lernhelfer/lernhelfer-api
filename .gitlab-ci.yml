@@ -11,4 +11,4 @@ deploy_docker:
     - docker rm -f $CONTAINER_NAME || true
   script:
     - docker build -t $CONTAINER_NAME:latest .
-    - docker run -d --name $CONTAINER_NAME --restart always -e HOST 5.9.24.52 -e PORT 5000 -p 65000:5000 $CONTAINER_NAME
+    - docker run -d --name $CONTAINER_NAME --restart always -e HOST=5.9.24.52 -e PORT=5000 -p 65000:5000 $CONTAINER_NAME
