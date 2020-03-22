@@ -20,4 +20,6 @@ COPY flask_service.py .
 COPY postgre_backend.py .
 COPY learnsupport_service.py .
 
+EXPOSE 5000
+
 CMD ["python3", "flask_service.py"]
