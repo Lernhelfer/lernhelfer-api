@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Tuple
 import psycopg2
 
 
@@ -23,7 +23,25 @@ class DatabaseConnector:
                                                port=self.port,
                                                dbname=self.database)
 
-    def receive_from_database(self, query: str) -> List:
+    def receive_one_from_database(self, query: str) -> Tuple:
+        self.check_connection()
+        try:
+            cur = self.connection.cursor()
+            cur.execute(query)
+            records = cur.fetchone()
+            return records
+
+        except (Exception, psycopg2.Error) as error:
+            print("Error while connecting to PostgreSQL", error)
+            return []
+
+        finally:
+            if (self.connection):
+                cur.close()
+                self.connection.close()
+                print("PostgreSQL connection is closed")
+
+    def receive_all_from_database(self, query: str) -> List:
         self.check_connection()
         try:
             cur = self.connection.cursor()

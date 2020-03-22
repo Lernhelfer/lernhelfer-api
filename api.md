@@ -112,7 +112,7 @@ Response: {Done: True/False}
 
 #### teacher profile
 POST /teacher/profile
-Request: {TeacherProfiles: TeacherDetails}
+Request: {TeacherProfile: TeacherProfiles}
 Response: {Done: True/False}
 
 GET /teacher/profile/{teacherUid: string}

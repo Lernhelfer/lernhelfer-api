@@ -99,7 +99,7 @@ class Teacher_Profiles(Resource):
             abort(400, message="Parameter teacher_uid is empty.")
         else:
             try:
-                results = service.get_teacher_details(teacher_uid)
+                results = service.get_teacher_profile(teacher_uid)
                 if results:
                     return results
             except Exception as e:
