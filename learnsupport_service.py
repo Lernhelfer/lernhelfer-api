@@ -266,21 +266,18 @@ class LearnSupportService:
         return learn_response_dict
 
     def post_learn_request(self, learn_request):
-
         student_uid = learn_request['student_uid']
         subject = learn_request['subject']
         topics = learn_request['topics']
         image = learn_request['image']
         question = learn_request['question']
         learn_request_id = uuid.uuid4()
-        #TODO: sysdate? datetime.datetime.now()
-        query = f"INSERT INTO learn_requests (learn_request_id, last_modification_date, student_uid, subject, image, question, status) values ('{learn_request_id}', sysdate, {student_uid}, '{subject}', '{image}', '{question}', 'open');"
+        query = f"INSERT INTO learn_requests (learn_request_id, last_modification_date, student_uid, subject, image, question, status) values ('{learn_request_id}', NOW(), {student_uid}, '{subject}', '{image}', '{question}', 'open');"
         self.connector.write_to_database(query)
         for topic in topics:
             topic_id = self.get_topic_id(topic)
             query = f"INSERT INTO learn_requests_topics (topic_id, learn_request_id) VALUES ('{topic_id}', '{learn_request_id}')"
             self.connector.write_to_database(query)
-
 
         return True
 
@@ -297,41 +294,40 @@ class LearnSupportService:
     def get_help_offer(self, student_uid):
         query = f"SELECT teacher_uid, message, help_offer_id, learn_request_id FROM help_Offers where student_uid = '{student_uid}'"
         result = self.connector.receive_one_from_database(query)
-        HelpOfferResponse = {}
-        HelpOfferResponse["teacher_uid"] = result[0]
-        HelpOfferResponse["message"] = result[1]
-        HelpOfferResponse["help_offer_id"] = result[2]
-        HelpOfferResponse["learn_request_id"] = result[3]
+        help_offer_response = {}
+        help_offer_response["teacher_uid"] = result[0]
+        help_offer_response["message"] = result[1]
+        help_offer_response["help_offer_id"] = result[2]
+        help_offer_response["learn_request_id"] = result[3]
 
-        return HelpOfferResponse
+        return help_offer_response
 
     def post_help_offer(self, learn_request_id, help_offer_request):
         teacher_uid = help_offer_request["teacher_uid"]
         message = help_offer_request["message"]
-        learn_request_id = help_offer_request["learn_request_id"]  # TODO: NOT NEEDED?
         help_offer_id = uuid.uuid4()
 
-        #TODO Check learnRequestId exits
-
-        query = f"INSERT INTO help_Offers (help_offer_id, teacher_uid, message, learn_request_id, status) VALUES ('{help_offer_id}', '{teacher_uid}', '{message}', '{learn_request_id}', 'Open')"
+        query = f"INSERT INTO help_offers (help_offer_id, teacher_uid, message, learn_request_id, status) VALUES ('{help_offer_id}', '{teacher_uid}', '{message}', '{learn_request_id}', 'Open')"
         self.connector.write_to_database(query)
 
         return help_offer_id
 
     def put_help_offer_state(self, help_offer_id, status):
-        query = f"update help_Offers set status = '{status}' WHERE help_offer_id = '{help_offer_id}'"
+        query = f"UPDATE help_offers SET status = '{status}' WHERE help_offer_id = '{help_offer_id}';"
         self.connector.write_to_database(query)
 
-        #TODO Update Techers Help Count wenn State == Helped
+        # update Techers Help Count wenn State == Helped
+        if status == "HELPED":
+            query = f"SELECT teacher_uid FROM help_offers WHERE help_offer_id = '{help_offer_id}';"
+            teacher_uid = self.connector.receive_one_from_database(query)
+            query = f"UPDATE teachers SET help_count = help_count + 1 WHERE teacher_uid = '{teacher_uid}'"
+            self.connector.write_to_database(query)
 
         return True
 
     def delete_help_offer(self, help_offer_id):
         query = f"DELETE FROM help_offers WHERE help_offer_id = '{help_offer_id}'"
         self.connector.write_to_database(query)
-
-        #TODO Update Techers Help Count wenn State == Helped
-
         return True
 
         
