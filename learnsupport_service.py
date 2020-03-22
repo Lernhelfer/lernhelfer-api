@@ -71,6 +71,11 @@ class LearnSupportService:
         results = self.connector.receive_from_database(query)
         return results
 
+    def get_teacher_grades(self, teacher_uid):
+        query = f"SELECT contact_type, contact_reach FROM teachers_reaches WHERE teacher_uid = '{teacher_uid}' ORDER BY order_number;"
+        results = self.connector.receive_from_database(query)
+        return results
+
     def delete_teacher(self, teacher_uid):
         query = f"DELETE FROM teachers WHERE teacher_uid = '{teacher_uid}';"
         self.connector.write_to_database(query)

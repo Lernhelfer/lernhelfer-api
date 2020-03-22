@@ -14,11 +14,11 @@ class Student(Resource):
         else:
             try:
                 results = service.get_student(student_uid)
-                if not results:
-                    abort(404, message="Parameter student_uid does not exist.")
-                return results
+                if results:
+                    return results
             except Exception as e:
                 abort(500, message=e)
+            abort(404, message="Parameter student_uid does not exist.")
 
     def delete(self, student_uid):
         if not student_uid:
@@ -34,11 +34,11 @@ class Students(Resource):
     def get(self):
         try:
             results = service.get_students()
-            if not results:
-                abort(404, message="No student exists.")
-            return results
+            if results:
+                return results
         except Exception as e:
             abort(500, message=e)
+        abort(404, message="No student exists.")
 
     def post(self):
         new_user = request.get_json()
@@ -57,11 +57,11 @@ class Teacher(Resource):
         else:
             try:
                 results = service.get_teacher(teacher_uid)
-                if not results:
-                    abort(404, message="Parameter teacher_uid does not exist.")
-                return results
+                if results:
+                    return results
             except Exception as e:
                 abort(500, message=e)
+            abort(404, message="Parameter teacher_uid does not exist.")
 
     def delete(self, teacher_uid):
         if not teacher_uid:
@@ -77,11 +77,11 @@ class Teachers(Resource):
     def get(self):
         try:
             results = service.get_teachers()
-            if not results:
-                abort(404, message="No teacher exists.")
-            return results
+            if results:
+                return results
         except Exception as e:
             abort(500, message=e)
+        abort(404, message="No teacher exists.")
 
     def post(self):
         new_user = request.get_json()
@@ -93,18 +93,18 @@ class Teachers(Resource):
         except Exception as e:
             abort(500, message=e)
 
-class Teacher_Details(Resource):
+class Teacher_Profiles(Resource):
     def get(self, teacher_uid):
         if not teacher_uid:
             abort(400, message="Parameter teacher_uid is empty.")
         else:
             try:
                 results = service.get_teacher_details(teacher_uid)
-                if not results:
-                    abort(404, message="Parameter teacher_uid does not exist.")
-                return results
+                if results:
+                    return results
             except Exception as e:
                 abort(500, message=e)
+            abort(404, message="Parameter teacher_uid does not exist.")
 
     def post(self, teacher_uid):
         new_details = request.get_json()
@@ -127,7 +127,7 @@ api.add_resource(Teacher, f'/{version}/teacher/<teacher_uid>')
 api.add_resource(Teachers, f'/{version}/teacher')
 
 # details #TODO: passt das so mit der URL?
-api.add_resource(Teacher_Details, f'/{version}/teacher/details/<teacher_uid>')
+api.add_resource(Teacher_Profiles, f'/{version}/teacher/profile/<teacher_uid>')
 
 @app.route('/')
 def get_version():
