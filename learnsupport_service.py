@@ -49,6 +49,11 @@ class LearnSupportService:
         result = self.connector.receive_one_from_database(query)
         return result
 
+    def get_subject_name(self, subject_id):
+        query = f"SELECT subject_name FROM subjects WHERE subject_id = '{subject_id}';"
+        result = self.connector.receive_one_from_database(query)
+        return result
+
     def get_subject_id(self, subject_name):
         query = f"SELECT subject_id from subjects WHERE subject_name = '{subject_name}';"
         result = self.connector.receive_one_from_database(query)
@@ -122,13 +127,13 @@ class LearnSupportService:
         teacher_profile = {}
         teacher_details = {}
         # get profileImage
-        query = f"SELECT name, helpCount, profileImageUrl FROM teachers WHERE teacher_uid = '{teacher_uid}';"
+        query = f"SELECT name, help_count, profile_image FROM teachers WHERE teacher_uid = '{teacher_uid}';"
         results = self.connector.receive_one_from_database(query)
         teacher_profile["name"] = results[0]
         teacher_profile["helpCount"] = results[1]
         teacher_details["profileImageUrl"] = results[2]
         # build subjects
-        query = f"SELECT subject_name, topic_name FROM teachers_topics WHERE teacher_uid = '{teacher_uid}';"
+        query = f"SELECT subject_name, topic_name FROM teachers_subjects_topics NATURAL JOIN subjects NATURAL JOIN topics WHERE teacher_uid = '{teacher_uid}';"
         results = self.connector.receive_all_from_database(query)
         res_dict = defaultdict(list)
         for tup in results:
@@ -146,7 +151,7 @@ class LearnSupportService:
 
     def post_teacher_profile(self, teacher_profile):
         #TODO: check if teacher_profile is JSON or string?
-        teacher_uid = teacher_profile['teacher_uid']
+        teacher_uid = teacher_profile['teacherUid']
         name_val = teacher_profile['name']
         teacher_details = teacher_profile['teacherDetails']
         profile_image = teacher_details['profileImageUrl']
@@ -159,7 +164,7 @@ class LearnSupportService:
             for v in vals:
                 communication_methods.append((k, v))
 
-        query = f"UPDATE teachers SET name='{name_val}', profileImageUrl='{profile_image}' WHERE teacher_uid = '{teacher_uid}';"
+        query = f"UPDATE teachers SET name='{name_val}', profile_image='{profile_image}' WHERE teacher_uid = '{teacher_uid}';"
         self.connector.write_to_database(query)
 
         query = f"DELETE teachers_subjects_topics WHERE teacher_uid = '{teacher_uid}';"
@@ -181,7 +186,7 @@ class LearnSupportService:
 
     def put_teacher_profile(self, teacher_profile):
         #TODO: check if teacher_profile is JSON or string?
-        teacher_uid = teacher_profile['teacher_uid']
+        teacher_uid = teacher_profile['teacherUid']
         name_val = teacher_profile['name']
         teacher_details = teacher_profile['teacherDetails']
         profile_image = teacher_details['profileImageUrl']
@@ -194,7 +199,7 @@ class LearnSupportService:
             for v in vals:
                 communication_methods.append((k, v))
 
-        query = f"UPDATE teachers SET name='{name_val}', profileImageUrl='{profile_image}' WHERE teacher_uid = '{teacher_uid}';"
+        query = f"UPDATE teachers SET name='{name_val}', profile_image='{profile_image}' WHERE teacher_uid = '{teacher_uid}';"
         self.connector.write_to_database(query)
 
         query = f"DELETE teachers_subjects_topics WHERE teacher_uid = '{teacher_uid}';"
@@ -229,7 +234,7 @@ class LearnSupportService:
     
     def get_learn_responses_student(self, student_uid):
         all_learn_requests_list = []
-        query = f"SELECT learn_request_id FROM learn_requests where student_uid = '{student_uid}' "
+        query = f"SELECT learn_request_id FROM learn_requests WHERE student_uid = '{student_uid}';"
         results = self.connector.receive_all_from_database(query)
 
         for res in results:
@@ -240,12 +245,12 @@ class LearnSupportService:
     
     def get_learn_response_student(self, student_uid, learn_request_id):
         #Dubbel Check request exits
-        query = f"SELECT learn_request_id FROM learn_requests where student_uid = '{student_uid}' learn_request_id = '{learn_request_id}' "
+        query = f"SELECT learn_request_id FROM learn_requests WHERE student_uid = '{student_uid}' AND learn_request_id = '{learn_request_id}';"
         result = self.connector.receive_one_from_database(query)
         return self.get_learn_response(result[0])
 
     def get_learn_response(self, learn_request_id):
-        query = f"SELECT learn_request_id, last_modification_date, student_uid, subject, image, question, status FROM learn_requests where learn_request_id = '{learn_request_id}'"
+        query = f"SELECT learn_request_id, last_modification_date, student_uid, subject_id, image, question, status FROM learn_requests WHERE learn_request_id = '{learn_request_id}';"
         result = self.connector.receive_one_from_database(query)
 
         learn_response_dict = {}
@@ -255,10 +260,10 @@ class LearnSupportService:
         for tid in topic_ids:
             topic_names.append(self.get_topic_name(tid))
         learn_response_dict['topics'] = topic_names
-        learn_response_dict['learn_request_id'] = result[0]
-        learn_response_dict['last_modification_date'] = result[1]
-        learn_response_dict['student_uid'] = result[2]
-        learn_response_dict['subject'] = result[3]
+        learn_response_dict['learnRequestId'] = result[0]
+        learn_response_dict['lastModificationDate'] = result[1]
+        learn_response_dict['studentUid'] = result[2]
+        learn_response_dict['subject'] = self.get_subject_name(result[3])
         learn_response_dict['image'] = result[4]
         learn_response_dict['question'] = result[5]
         learn_response_dict['status'] = result[6]
@@ -266,7 +271,7 @@ class LearnSupportService:
         return learn_response_dict
 
     def post_learn_request(self, learn_request):
-        student_uid = learn_request['student_uid']
+        student_uid = learn_request['studentUid']
         subject = learn_request['subject']
         topics = learn_request['topics']
         image = learn_request['image']
@@ -276,7 +281,7 @@ class LearnSupportService:
         self.connector.write_to_database(query)
         for topic in topics:
             topic_id = self.get_topic_id(topic)
-            query = f"INSERT INTO learn_requests_topics (topic_id, learn_request_id) VALUES ('{topic_id}', '{learn_request_id}')"
+            query = f"INSERT INTO learn_requests_topics (learn_request_id, topic_id) VALUES ('{learn_request_id}', '{topic_id}')"
             self.connector.write_to_database(query)
 
         return True
@@ -292,18 +297,18 @@ class LearnSupportService:
         return True
     
     def get_help_offer(self, student_uid):
-        query = f"SELECT teacher_uid, message, help_offer_id, learn_request_id FROM help_Offers where student_uid = '{student_uid}'"
+        query = f"SELECT teacher_uid, message, help_offer_id, learn_request_id FROM help_offers where student_uid = '{student_uid}'"
         result = self.connector.receive_one_from_database(query)
         help_offer_response = {}
-        help_offer_response["teacher_uid"] = result[0]
+        help_offer_response["teacherUid"] = result[0]
         help_offer_response["message"] = result[1]
-        help_offer_response["help_offer_id"] = result[2]
-        help_offer_response["learn_request_id"] = result[3]
+        help_offer_response["helpOfferId"] = result[2]
+        help_offer_response["learnRequestId"] = result[3]
 
         return help_offer_response
 
     def post_help_offer(self, learn_request_id, help_offer_request):
-        teacher_uid = help_offer_request["teacher_uid"]
+        teacher_uid = help_offer_request["teacherUid"]
         message = help_offer_request["message"]
         help_offer_id = uuid.uuid4()
 
