@@ -28,7 +28,6 @@ TeacherDetails {
 }
 
 LearnRequest {
-  lastModificationDate: DateTime,
   studentUid: string,
   subject: string,
   topics: string[],
@@ -53,14 +52,14 @@ LearnRequestStatus [Open, Offer sent, Offer accepted, Closed]
 HelpOfferRequest {
   learnRequestId: string,
   teacherUid: string,
-  messages: string[]
+  message: string
 }
 
 HelpOfferResponse {
   helpOfferId: string,
   learnRequestId: string,
   teacherUid: string,
-  messages: string[]
+  message: string
 }
 
 HelpOfferStatus [Open, Contacted, Helped, Not helped]
