@@ -63,7 +63,10 @@ def get_version():
 
 
 if __name__ == '__main__':
-    service = LearnSupportService()
+    try:
+        service = LearnSupportService()
+    except Exception as e:
+        print(e)
     debug = False
     if "DEBUG_LOCAL" in os.environ.keys():
         debug = True
