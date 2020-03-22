@@ -7,6 +7,8 @@ stages:
   
 deploy_docker:
   stage: deploy
+  only:
+    - master
   before_script:
     - docker rm -f $CONTAINER_NAME || true
   script:
