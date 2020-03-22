@@ -15,11 +15,11 @@ def create_database_connection():
         database=credentials["database"]
     else:
         print("no debug mode")
-        user=os.environ["USER"]
-        password=os.environ["PASSWORD"]
-        host=os.environ["HOST"]
-        port=os.environ["PORT"]
-        database=os.environ["DATABASE"]
+        user = os.environ["USER"]
+        password = os.environ["PASSWORD"]
+        host = os.environ["HOST"]
+        port = os.environ["PORT"]
+        database = os.environ["DATABASE"]
 
     print(user)
     print(host)

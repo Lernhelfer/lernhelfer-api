@@ -4,11 +4,11 @@ import psycopg2
 
 class DatabaseConnector:
     def __init__(self, user, password, host, port, database):
-        self.user = user
-        self.password = password
-        self.host = host
-        self.port = port
-        self.database = database
+        self.user = str(user)
+        self.password = str(password)
+        self.host = str(host)
+        self.port = str(port)
+        self.database = str(database)
         self.connection = psycopg2.connect(user=self.user,
                                            password=self.password,
                                            host=self.host,

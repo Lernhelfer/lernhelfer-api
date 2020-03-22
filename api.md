@@ -9,7 +9,7 @@ topic: Themengebiet
 StudentProfile {
   studentUid: string,
   name: string,
-  class: number
+  grade: number
 }
 
 TeacherProfile {
@@ -22,7 +22,7 @@ TeacherDetails {
   name: string,
   profileImageUrl: string | base64,
   subjects: {
-    [subject: string]: number[] // classes
+    [subject: string]: number[] // grades
   }
   communicationMethods: {[medium: string]: string} // {skype: asdf87,  phone: +4912534534, telegram: t.co/asdf87}
 }
@@ -53,20 +53,20 @@ HelpOfferStatus [Open, Contacted, Helped, Not helped]
 ## APIs:
 ```
 ### /
-GET classes
-Response: {classes: number[]}
+GET grades
+Response: {grades: number[]}
 
 GET subjects
 Response: {subjects: string[]}
 
 GET subject/topics
-Request: {subject: string}
+Request: {subject: string, grade: number}
 Response: {topics: string[]}
 
 
 ### student/profile
 POST
-Request: {name: string, class: number}
+Request: {name: string, grade: number}
 Response: {studentUid: string}
 
 
