@@ -50,12 +50,84 @@ class Students(Resource):
         except Exception as e:
             abort(500, message=e)
 
+class Teacher(Resource):
+    def get(self, teacher_uid):
+        if not teacher_uid:
+            abort(400, message="Parameter teacher_uid is empty.")
+        else:
+            try:
+                results = service.get_teacher(teacher_uid)
+                if not results:
+                    abort(404, message="Parameter teacher_uid does not exist.")
+                return results
+            except Exception as e:
+                abort(500, message=e)
 
+    def delete(self, teacher_uid):
+        if not teacher_uid:
+            abort(400, message="Parameter teacher_uid is empty.")
+        else:
+            try:
+                service.delete_teacher(teacher_uid)
+            except Exception as e:
+                abort(500, message=e)
+
+class Teachers(Resource):
+    # TODO: leere DB gibt 500
+    def get(self):
+        try:
+            results = service.get_teachers()
+            if not results:
+                abort(404, message="No teacher exists.")
+            return results
+        except Exception as e:
+            abort(500, message=e)
+
+    def post(self):
+        new_user = request.get_json()
+        if not new_user:
+            abort(400, message="Teacher is not valid.")
+        try:
+            teacher_uid = service.post_teachers(new_user['name'])
+            return {"teacher_uid": str(teacher_uid)}
+        except Exception as e:
+            abort(500, message=e)
+
+class Teacher_Details(Resource):
+    def get(self, teacher_uid):
+        if not teacher_uid:
+            abort(400, message="Parameter teacher_uid is empty.")
+        else:
+            try:
+                results = service.get_teacher_details(teacher_uid)
+                if not results:
+                    abort(404, message="Parameter teacher_uid does not exist.")
+                return results
+            except Exception as e:
+                abort(500, message=e)
+
+    def post(self, teacher_uid):
+        new_details = request.get_json()
+        if not new_details:
+            abort(400, message="Teacher is not valid.")
+        try:
+            service.post_teacher_details(teacher_uid, new_details['order_number'], new_details['contact_type'], new_details['contact_reach'])
+            return True
+        except Exception as e:
+            abort(500, message=e)
 # add URLs
 version = "v1"
+
+# students
 api.add_resource(Student, f'/{version}/student/<student_uid>')
 api.add_resource(Students, f'/{version}/student')
 
+# teachers
+api.add_resource(Teacher, f'/{version}/teacher/<teacher_uid>')
+api.add_resource(Teachers, f'/{version}/teacher')
+
+# details #TODO: passt das so mit der URL?
+api.add_resource(Teacher_Details, f'/{version}/teacher/details/<teacher_uid>')
 
 @app.route('/')
 def get_version():
