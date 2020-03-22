@@ -38,6 +38,7 @@ class LearnSupportService:
     def __init__(self):
         self.connector = create_database_connection()
 
+    # helper functions
     def get_topic_name(self, topic_id):
         query = f"SELECT topic_name FROM topics WHERE topic_id = '{topic_id}';"
         result = self.connector.receive_one_from_database(query)
@@ -217,7 +218,7 @@ class LearnSupportService:
     # learnRequest
     def get_learn_responses(self):
         all_learn_requests_list = []
-        query = f"SELECT learnRequestId FROM learn_requests;"
+        query = f"SELECT learn_request_id FROM learn_requests;"
         results = self.connector.receive_all_from_database(query)
 
         for res in results:
@@ -226,9 +227,9 @@ class LearnSupportService:
 
         return all_learn_requests_list
     
-    def get_learn_responses_student(self, studentUid):
+    def get_learn_responses_student(self, student_uid):
         all_learn_requests_list = []
-        query = f"SELECT learnRequestId FROM learn_requests where studentUid = '{studentUid}' "
+        query = f"SELECT learn_request_id FROM learn_requests where student_uid = '{student_uid}' "
         results = self.connector.receive_all_from_database(query)
 
         for res in results:
@@ -237,26 +238,26 @@ class LearnSupportService:
 
         return all_learn_requests_list
     
-    def get_learn_response_student(self, studentUid, learnRequestId):
+    def get_learn_response_student(self, student_uid, learn_request_id):
         #Dubbel Check request exits
-        query = f"SELECT learnRequestId FROM learn_requests where studentUid = '{studentUid}' learnRequestId = '{learnRequestId}' "
+        query = f"SELECT learn_request_id FROM learn_requests where student_uid = '{student_uid}' learn_request_id = '{learn_request_id}' "
         result = self.connector.receive_one_from_database(query)
         return self.get_learn_response(result[0])
 
-    def get_learn_response(self, learnRequestId):
-        query = f"SELECT learnRequestId, lastModificationDate, studentUid, subject, image, question, status FROM learn_requests where learnRequestId = '{learnRequestId}'"
+    def get_learn_response(self, learn_request_id):
+        query = f"SELECT learn_request_id, last_modification_date, student_uid, subject, image, question, status FROM learn_requests where learn_request_id = '{learn_request_id}'"
         result = self.connector.receive_one_from_database(query)
 
         learn_response_dict = {}
-        query = f"SELECT topic_id FROM learn_requests_topics WHERE learnRequestId = '{learnRequestId}';"
+        query = f"SELECT topic_id FROM learn_requests_topics WHERE learn_request_id = '{learn_request_id}';"
         topic_ids = self.connector.receive_all_from_database(query)
         topic_names = []
         for tid in topic_ids:
             topic_names.append(self.get_topic_name(tid))
         learn_response_dict['topics'] = topic_names
-        learn_response_dict['learnRequestId'] = result[0]
-        learn_response_dict['lastModificationDate'] = result[1]
-        learn_response_dict['studentUid'] = result[2]
+        learn_response_dict['learn_request_id'] = result[0]
+        learn_response_dict['last_modification_date'] = result[1]
+        learn_response_dict['student_uid'] = result[2]
         learn_response_dict['subject'] = result[3]
         learn_response_dict['image'] = result[4]
         learn_response_dict['question'] = result[5]
@@ -264,68 +265,69 @@ class LearnSupportService:
 
         return learn_response_dict
 
-    def post_learn_request(self, learnRequest):
+    def post_learn_request(self, learn_request):
 
-        studentUid = learnRequest['studentUid']
-        subject = learnRequest['subject']
-        topics = learnRequest['topics']
-        image = learnRequest['image']
-        question = learnRequest['question']
-        learnRequestId = uuid.uuid4()
-
-        query = f"INSERT INTO learn_requests (learnRequestId, lastModificationDate, studentUid, subject, image, question, status) values ('{learnRequestId}', sysdate, {studentUid}, '{subject}', '{image}', '{question}', 'open');"
+        student_uid = learn_request['student_uid']
+        subject = learn_request['subject']
+        topics = learn_request['topics']
+        image = learn_request['image']
+        question = learn_request['question']
+        learn_request_id = uuid.uuid4()
+        #TODO: sysdate? datetime.datetime.now()
+        query = f"INSERT INTO learn_requests (learn_request_id, last_modification_date, student_uid, subject, image, question, status) values ('{learn_request_id}', sysdate, {student_uid}, '{subject}', '{image}', '{question}', 'open');"
         self.connector.write_to_database(query)
         for topic in topics:
             topic_id = self.get_topic_id(topic)
-            query = f"INSERT INTO learn_requests_topics (topic_id, learnRequestId) VALUES ('{topic_id}', '{learnRequestId}')"
+            query = f"INSERT INTO learn_requests_topics (topic_id, learn_request_id) VALUES ('{topic_id}', '{learn_request_id}')"
+            self.connector.write_to_database(query)
 
 
         return True
 
-    def delete_learn_request(self, learnRequestId):
-        query = f"DELETE FROM learn_requests WHERE learnRequestId = '{learnRequestId}' "
+    def delete_learn_request(self, learn_request_id):
+        query = f"DELETE FROM learn_requests WHERE learn_request_id = '{learn_request_id}' "
         self.connector.write_to_database(query)
         return True
 
-    def get_match(self, teacherUid):
+    def get_match(self, teacher_uid):
         #TODO Implement
         raise Exception("Not Implemented") 
         return True
     
-    def get_helpOffer(self, studentUid):
-        query = f"SELECT teacherUid, message, helpOfferId, learnRequestId FROM help_Offers where studentUid = '{studentUid}'"
+    def get_help_offer(self, student_uid):
+        query = f"SELECT teacher_uid, message, help_offer_id, learn_request_id FROM help_Offers where student_uid = '{student_uid}'"
         result = self.connector.receive_one_from_database(query)
         HelpOfferResponse = {}
-        HelpOfferResponse["teacherUid"] = result[0]
+        HelpOfferResponse["teacher_uid"] = result[0]
         HelpOfferResponse["message"] = result[1]
-        HelpOfferResponse["helpOfferId"] = result[2]
-        HelpOfferResponse["learnRequestId"] = result[3]
+        HelpOfferResponse["help_offer_id"] = result[2]
+        HelpOfferResponse["learn_request_id"] = result[3]
 
         return HelpOfferResponse
 
-    def post_helpOffer(self, learnRequestId, helpOfferRequest):
-        teacherUid = helpOfferRequest["teacherUid"]
-        message = helpOfferRequest["message"]
-        learnRequestId = helpOfferRequest["learnRequestId"]
-        helpOfferId = uuid.uuid4()
+    def post_help_offer(self, learn_request_id, help_offer_request):
+        teacher_uid = help_offer_request["teacher_uid"]
+        message = help_offer_request["message"]
+        learn_request_id = help_offer_request["learn_request_id"]  # TODO: NOT NEEDED?
+        help_offer_id = uuid.uuid4()
 
         #TODO Check learnRequestId exits
 
-        query = f"INSERT INTO help_Offers (helpOfferId, teacherUid, message, learnRequestId, status) VALUES ('{helpOfferId}', '{teacherUid}', '{message}', '{learnRequestId}', 'Open')"
+        query = f"INSERT INTO help_Offers (help_offer_id, teacher_uid, message, learn_request_id, status) VALUES ('{help_offer_id}', '{teacher_uid}', '{message}', '{learn_request_id}', 'Open')"
         self.connector.write_to_database(query)
 
-        return helpOfferId
+        return help_offer_id
 
-    def put_helpOffer_state(self, helpOfferId, status):
-        query = f"update help_Offers set status = '{status}' WHERE helpOfferId = '{helpOfferId}'"
+    def put_help_offer_state(self, help_offer_id, status):
+        query = f"update help_Offers set status = '{status}' WHERE help_offer_id = '{help_offer_id}'"
         self.connector.write_to_database(query)
 
         #TODO Update Techers Help Count wenn State == Helped
 
         return True
 
-    def delete_helpOffer(self, helpOfferId):
-        query = f"DELETE FROM help_Offers WHERE helpOfferId = '{helpOfferId}'"
+    def delete_help_offer(self, help_offer_id):
+        query = f"DELETE FROM help_offers WHERE help_offer_id = '{help_offer_id}'"
         self.connector.write_to_database(query)
 
         #TODO Update Techers Help Count wenn State == Helped
