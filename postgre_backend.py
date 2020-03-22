@@ -13,7 +13,7 @@ class DatabaseConnector:
                                            password=self.password,
                                            host=self.host,
                                            port=self.port,
-                                           database=self.database)
+                                           dbname=self.database)
 
     def check_connection(self):
         if self.connection.closed == 1:
@@ -21,7 +21,7 @@ class DatabaseConnector:
                                                password=self.password,
                                                host=self.host,
                                                port=self.port,
-                                               database=self.database)
+                                               dbname=self.database)
 
     def receive_from_database(self, query: str) -> List:
         self.check_connection()
