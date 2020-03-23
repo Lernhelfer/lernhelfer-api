@@ -59,6 +59,11 @@ class LearnSupportService:
         result = self.connector.receive_one_from_database(query)
         return result
 
+    def get_teacher_name(self, teacher_uid):
+        query = f"SELECT name FROM teachers WHERE teacher_uid = '{teacher_uid}';"
+        result = self.connector.receive_one_from_database(query)
+        return result
+
     # basics
     def get_grades(self):
         query = f"SELECT grade FROM grades;"
@@ -152,7 +157,7 @@ class LearnSupportService:
     def post_teacher_profile(self, teacher_profile):
         #TODO: check if teacher_profile is JSON or string?
         teacher_uid = teacher_profile['teacherUid']
-        name_val = teacher_profile['name']
+        name_val = teacher_profile['name']  #self.get_teacher_name(teacher_uid)
         teacher_details = teacher_profile['teacherDetails']
         profile_image = teacher_details['profileImageUrl']
         subjects = []
