@@ -226,7 +226,7 @@ class LearnSupportService:
 
 
     # learnRequest
-    def get_learn_responses(self):
+    def get_learn_responses(self):  # internal method
         all_learn_requests_list = []
         query = f"SELECT learn_request_id FROM learn_requests;"
         results = self.connector.receive_all_from_database(query)
@@ -237,7 +237,7 @@ class LearnSupportService:
 
         return all_learn_requests_list
     
-    def get_learn_responses_student(self, student_uid):
+    def get_learn_requests_student(self, student_uid):
         all_learn_requests_list = []
         query = f"SELECT learn_request_id FROM learn_requests WHERE student_uid = '{student_uid}';"
         results = self.connector.receive_all_from_database(query)
@@ -248,13 +248,13 @@ class LearnSupportService:
 
         return all_learn_requests_list
     
-    def get_learn_response_student(self, student_uid, learn_request_id):
+    def get_learn_request_student(self, student_uid, learn_request_id):
         #Dubbel Check request exits
         query = f"SELECT learn_request_id FROM learn_requests WHERE student_uid = '{student_uid}' AND learn_request_id = '{learn_request_id}';"
         result = self.connector.receive_one_from_database(query)
         return self.get_learn_response(result[0])
 
-    def get_learn_response(self, learn_request_id):
+    def get_learn_response(self, learn_request_id):  # internal
         query = f"SELECT learn_request_id, last_modification_date, student_uid, subject_id, image, question, status FROM learn_requests WHERE learn_request_id = '{learn_request_id}';"
         result = self.connector.receive_one_from_database(query)
 
@@ -289,20 +289,21 @@ class LearnSupportService:
             query = f"INSERT INTO learn_requests_topics (learn_request_id, topic_id) VALUES ('{learn_request_id}', '{topic_id}')"
             self.connector.write_to_database(query)
 
-        return True
+        return learn_request_id
 
-    def delete_learn_request(self, learn_request_id):
-        query = f"DELETE FROM learn_requests WHERE learn_request_id = '{learn_request_id}' "
+    def delete_learn_request(self, student_uid, learn_request_id):
+        query = f"DELETE FROM learn_requests WHERE learn_request_id = '{learn_request_id}' AND student_uid = '{student_uid}';"
         self.connector.write_to_database(query)
         return True
 
     def get_match(self, teacher_uid):
         #TODO Implement
+        # return all requests where 
         raise Exception("Not Implemented") 
         return True
-    
-    def get_help_offer(self, student_uid):
-        query = f"SELECT teacher_uid, message, help_offer_id, learn_request_id FROM help_offers where student_uid = '{student_uid}'"
+
+    def get_help_offer(self, student_uid, learn_request_id):
+        query = f"SELECT teacher_uid, message, help_offer_id, learn_request_id FROM help_offers where student_uid = '{student_uid}' AND learn_request_id = '{learn_request_id}';"
         result = self.connector.receive_one_from_database(query)
         help_offer_response = {}
         help_offer_response["teacherUid"] = result[0]
@@ -311,6 +312,20 @@ class LearnSupportService:
         help_offer_response["learnRequestId"] = result[3]
 
         return help_offer_response
+    
+    def get_help_offers(self, student_uid):
+        query = f"SELECT teacher_uid, message, help_offer_id, learn_request_id FROM help_offers where student_uid = '{student_uid}'"
+        result = self.connector.receive_all_from_database(query)
+        help_offer_responses = []
+        for res in result:
+            response = {}
+            response["teacherUid"] = res[0]
+            response["message"] = res[1]
+            response["helpOfferId"] = res[2]
+            response["learnRequestId"] = res[3]
+            help_offer_responses.append(response)
+
+        return help_offer_responses
 
     def post_help_offer(self, learn_request_id, help_offer_request):
         teacher_uid = help_offer_request["teacherUid"]

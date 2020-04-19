@@ -130,7 +130,7 @@ class Teachers(Resource):
             abort(500, message=e)
 
 
-class Teacher_Profile(Resource):
+class TeacherProfile(Resource):
     def post(self):
         teacher_profile = request.get_json()
         if not teacher_profile:
@@ -141,7 +141,7 @@ class Teacher_Profile(Resource):
         except Exception as e:
             abort(500, message=e)
 
-class Teacher_Profiles(Resource):
+class TeacherProfiles(Resource):
     def get(self, teacher_uid):
         if not teacher_uid:
             abort(400, message="Parameter teacher_uid is empty.")
@@ -164,11 +164,136 @@ class Teacher_Profiles(Resource):
             if teacher_uid != teacher_profile['teacherUid']:
                 abort(400, message="TeacherUid is not valid.")
             try:
-                service.post_teacher_profile(teacher_profile)
+                service.put_teacher_profile(teacher_profile)
                 return True
             except Exception as e:
                 abort(500, message=e)
 
+
+
+
+
+
+
+
+class LearnRequest(Resources):
+    def get(self, student_uid, learn_request_id):
+        if not student_uid:
+            abort(400, message="Parameter student_uid is empty.")
+        if not learn_request_id:
+            abort(400, message="Parameter learn_request_id is empty.")    
+        else:
+            try:
+                result = service.get_learn_request_student(student_uid, learn_request_id)
+                if result:
+                    return result
+            except Exception as e:
+                abort(500, message=e)
+            abort(404, message="Parameter student_uid or learn_request_id do not exist.")
+
+    def delete(self, student_uid, learn_request_id):
+        if not student_uid:
+            abort(400, message="Parameter student_uid is empty.")
+        if not learn_request_id:
+            abort(400, message="Parameter learn_request_id is empty.")
+        else:
+            try:
+                service.delete_learn_request(student_uid, learn_request_id)
+            except Exception as e:
+                abort(500, message=e)            
+
+class LearnRequestAddNew(Resource):
+    def post(self):
+        learn_request = request.get_json()
+        if not learn_request:
+            abort(400, message="Parameter learn_request is empty.")
+        else:
+            try:
+                result = service.post_learn_request(learn_request)
+                if result:
+                    return result
+            except Exception as e:
+                abort(500, message=e)
+
+class LearnRequests(Resources):
+    def get(self, student_uid):
+        if not student_uid:
+            abort(400, message="Parameter student_uid is empty.")
+        else:
+            try:
+                results = service.get_learn_requests_student(student_uid)
+                if results:
+                    return results
+            except Exception as e:
+                abort(500, message=e)
+            abort(404, message="Parameter student_uid does not exist.")
+
+
+class HelpOffer(Resources):
+    def get(self, student_uid, learn_request_id):
+        if not student_uid:
+            abort(400, message="Parameter student_uid is empty.")
+        if not learn_request_id:
+            abort(400, message="Parameter learn_request_id is empty.")
+        else:
+            try:
+                result = service.get_help_offer(student_uid, learn_request_id)
+                if result:
+                    return result
+            except Exception as e:
+                abort(500, message=e)
+            abort(404, message="Parameter student_uid or learn_request_id do not exist.")
+
+class HelpOffers(Resources):
+    def get(self, student_uid):
+        if not student_uid:
+            abort(400, message="Parameter student_uid is empty.")
+        else:
+            try:
+                results = service.get_help_offers(student_uid)
+                if results:
+                    return results
+            except Exception as e:
+                abort(500, message=e)
+            abort(404, message="Parameter student_uid does not exist.")            
+
+class HelpOfferAddNew(Resources):
+    def post(self, learn_request_id):
+        if not learn_request_id:
+            abort(400, message="Parameter learn_request_id is empty.")
+        help_offer_request = request.get_json()
+        if not help_offer_request:
+            abort(400, message="Parameter help_offer_request is empty.")
+        else:
+            try:
+                result = service.post_help_offer(learn_request_id, help_offer_request)
+                if result:
+                    return result
+            except Exception as e:
+                abort(500, message=e)
+
+class HelpOfferUpdate(Resources):
+    def put(self, help_offer_id, status):
+        if not help_offer_id:
+            abort(400, message="Parameter help_offer_id is empty.")
+        if not status:
+            abort(400, message="Parameter status is empty.")
+        else:
+            try:
+                service.put_help_offer_state(help_offer_id, status)
+                return True
+            except Exception as e:
+                abort(500, message=e)
+
+class HelpOfferRemove(Resources):
+    def delete(self, help_offer_id):
+        if not help_offer_id:
+            abort(400, message="Parameter help_offer_id is empty.")
+        else:
+            try:
+                service.delete_help_offer(help_offer_id)
+            except Exception as e:
+                abort(500, message=e)          
 
 # add URLs
 version = "v1"
@@ -181,14 +306,26 @@ api.add_resource(Topics, f'/{version}/subject/topics')
 # students
 api.add_resource(Student, f'/{version}/student/<student_uid>')
 api.add_resource(Students, f'/{version}/student')
+# learn requests
+api.add_resource(LearnRequest, f'/{version}/student/<student_uid>/learnrequest/<learn_request_id>')
+api.add_resource(LearnRequestAddNew, f'/{version}/student/learnrequest')
+api.add_resource(LearnRequests, f'/{version}/student/<student_uid>/learnrequest')
+# help offers
+api.add_resource(HelpOffer, f'/{version}/student/<student_uid>/learnrequest/<learn_request_id>/helpoffer')
+api.add_resource(HelpOffers, f'/{version}/student/<student_uid>/learnrequest/helpoffer')
 
 # teachers
 api.add_resource(Teacher, f'/{version}/teacher/<teacher_uid>')
 api.add_resource(Teachers, f'/{version}/teacher')
+# help offers
+api.add_resource(HelpOfferAddNew, f'/{version}/teacher/learnrequest/<learn_request_id>/helpoffer')
+api.add_resource(HelpOfferRemove, f'/{version}/teacher/learnrequest/helpoffer/<help_offer_id>')
+api.add_resource(HelpOfferUpdate, f'/{version}/teacher/learnrequest/helpoffer/<help_offer_id>/<status>')
 
 # teacher details
-api.add_resource(Teacher_Profile, f'/{version}//teacher/profile')
-api.add_resource(Teacher_Profiles, f'/{version}/teacher/profile/<teacher_uid>')
+api.add_resource(TeacherProfile, f'/{version}/teacher/profile')
+api.add_resource(TeacherProfiles, f'/{version}/teacher/profile/<teacher_uid>')
+
 
 @app.route('/')
 def get_version():
