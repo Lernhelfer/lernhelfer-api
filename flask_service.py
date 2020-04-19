@@ -170,12 +170,6 @@ class TeacherProfiles(Resource):
                 abort(500, message=e)
 
 
-
-
-
-
-
-
 class LearnRequest(Resources):
     def get(self, student_uid, learn_request_id):
         if not student_uid:
@@ -295,6 +289,21 @@ class HelpOfferRemove(Resources):
             except Exception as e:
                 abort(500, message=e)          
 
+
+class Match(Resources):
+    def get(self, teacher_uid):
+        if not teacher_uid:
+            abort(400, message="Parameter teacher_uid is empty.")
+        else:
+            try:
+                results = service.get_match(teacher_uid)
+                if results:
+                    return results
+            except Exception as e:
+                abort(500, message=e)
+            abort(404, message="Parameter teacher_uid does not exist.")    
+
+
 # add URLs
 version = "v1"
 
@@ -308,7 +317,7 @@ api.add_resource(Student, f'/{version}/student/<student_uid>')
 api.add_resource(Students, f'/{version}/student')
 # learn requests
 api.add_resource(LearnRequest, f'/{version}/student/<student_uid>/learnrequest/<learn_request_id>')
-api.add_resource(LearnRequestAddNew, f'/{version}/student/learnrequest')
+api.add_resource(LearnRequestAddNew, f'/{version}/student/<student_uid>/learnrequest')
 api.add_resource(LearnRequests, f'/{version}/student/<student_uid>/learnrequest')
 # help offers
 api.add_resource(HelpOffer, f'/{version}/student/<student_uid>/learnrequest/<learn_request_id>/helpoffer')
@@ -325,6 +334,9 @@ api.add_resource(HelpOfferUpdate, f'/{version}/teacher/learnrequest/helpoffer/<h
 # teacher details
 api.add_resource(TeacherProfile, f'/{version}/teacher/profile')
 api.add_resource(TeacherProfiles, f'/{version}/teacher/profile/<teacher_uid>')
+
+# match
+api.add_resource(Match, f'/{version}/match/<teacher_uid>')
 
 
 @app.route('/')

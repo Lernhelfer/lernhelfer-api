@@ -64,6 +64,14 @@ class LearnSupportService:
         result = self.connector.receive_one_from_database(query)
         return result
 
+    def get_topic_names_from_learn_request(self, learn_request_id):
+        topic_names_list = []
+        query = f"SELECT topic_id FROM learn_requests_topics WHERE learn_request_id = '{learn_request_id}';"
+        results = self.connector.receive_all_from_database(query)
+        for res in results:
+            topic_names_list.append(self.get_topic_name(res))
+        return topic_names_list     
+
     # basics
     def get_grades(self):
         query = f"SELECT grade FROM grades;"
@@ -297,10 +305,32 @@ class LearnSupportService:
         return True
 
     def get_match(self, teacher_uid):
-        #TODO Implement
-        # return all requests where 
-        raise Exception("Not Implemented") 
-        return True
+        learn_responses_list = []
+        query = f"""SELECT learn_request_id, last_modification_date, student_uid, subject_id, image, question, status
+                  FROM learn_requests, learn_requests_topics, teachers_subjects_topics, topics 
+                  WHERE status = 'OPEN'
+                  AND learn_requests.help_offer_id = learn_requests_topics.help_offer_id
+                  AND learn_requests_topics.topic_id = teachers_subjects_topics.topic_id
+                  AND learn_requests_topics.topic_id = topics.topic_id
+                  AND topics.grade = teachers_classes.class 
+                  AND teachers_classes.teacher_uid = teachers_subjects_topics.teacher_uid
+                  AND teachers_subjects_topics.teacher_uid = '{teacher_uid}'
+                  ORDER BY last_modification_date DESC;
+        """
+        results = self.connector.receive_all_from_database(query)
+        for res in results:
+            response = {}
+            response["learnRequestId"] = res[0]
+            response["lastModificationDate"] = res[1]
+            response["studentUid"] = res[2]
+            response["subject"] = self.get_subject_name(res[3])
+            response["topics"] = self.get_topic_names_from_learn_request(res[0])
+            response["image"] = res[5]
+            response["question"] = res[6]
+            response["status"] = res[7]
+            learn_responses_list.append(response)
+  
+        return learn_responses_list
 
     def get_help_offer(self, student_uid, learn_request_id):
         query = f"SELECT teacher_uid, message, help_offer_id, learn_request_id FROM help_offers where student_uid = '{student_uid}' AND learn_request_id = '{learn_request_id}';"

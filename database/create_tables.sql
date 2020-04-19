@@ -1,3 +1,6 @@
+create database lernhelfer;
+use lernhelfer;
+
 create table students
 (
 	student_uid uuid not null

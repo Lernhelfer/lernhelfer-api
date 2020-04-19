@@ -123,20 +123,17 @@ Response: {Done: True/False}
 
 
 ### learnRequest
-GET /learnRequest
+GET /student/{studentUid: string}/learnrequest
 Response: {learnResponse: learnResponse[]}
 
-GET /learnRequest/{studentUid: string}
-Response: {learnResponse: learnResponse[]}
-
-GET /learnRequest/{studentUid: string}/{learnRequestId: string}
+GET /student/{studentUid: string}/learnRequest/{learnRequestId: string}
 Response: {learnRequest: LearnRequest}
 
-POST /learnRequest
+POST /student/{studentUid: string}/learnrequest
 Request: {learnRequest: LearnRequest}
 Response: {learnResponseId: string}
 
-DELETE /learRequest/{learnRequestId: string}
+DELETE /student/{studentUid: string}/learnrequest/{learnRequestId: string}
 Request: {Done: True/False}
 
 
@@ -146,16 +143,19 @@ Response: {learnResponse: learnResponse[]}
 
 
 #### helpOffer for learnRequest
-GET /helpOffer/{studentUid: string}
+GET /student/{studentUid: string}/learnrequest/helpoffer
 Reponse: {helpOffer: HelpOfferResponse[]]
 
-POST /helpOffer/{learnRequestId: string}
+GET /student/{studentUid: string}/learnrequest/{learnRequestId: string}/helpoffer
+Reponse: {helpOffer: HelpOfferResponse}
+
+POST /teacher/learnrequest/{learnRequestId: string}/helpoffer
 Request: {helpOffer: helpOfferRequest}
 Response: {helpOfferId: string}
 
 # student can set following stati: Contacted, Helped, Not helped]
-PUT /helpOffer/{helpOfferId: string}/{status: HelpOfferStatus}
+PUT /teacher/learnrequest/helpoffer/{helpOfferId: string}/{status: HelpOfferStatus}
 Response: {Done: True/False}
 
-DELETE /helpOffer/{helpOfferId: string}
+DELETE /teacher/learnrequest/helpoffer/{helpOfferId: string}
 Response: {Done: True/False}
