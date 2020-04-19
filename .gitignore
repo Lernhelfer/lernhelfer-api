@@ -1,6 +1,8 @@
 
-# Created by https://www.gitignore.io/api/git,linux,macos,flask,python,pycharm,windows
-# Edit at https://www.gitignore.io/?templates=git,linux,macos,flask,python,pycharm,windows
+# Created by https://www.gitignore.io/api/git,linux,macos,flask,python,pycharm,windows,visualstudiocode
+
+# Edit at https://www.gitignore.io/?templates=git,linux,macos,flask,python,pycharm,windows,visualstudiocode
+
 
 ### credentials
 secrets.txt
@@ -335,4 +337,15 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 
-# End of https://www.gitignore.io/api/git,linux,macos,flask,python,pycharm,windows
+### VisualStudioCode ###
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+### VisualStudioCode Patch ###
+# Ignore all local history of files
+.history
+
+# End of https://www.gitignore.io/api/git,linux,macos,flask,python,pycharm,windows,visualstudiocode
